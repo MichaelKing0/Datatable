@@ -111,7 +111,16 @@ class QueryEngine extends BaseEngine {
         }
         else
         {
-            $this->options['counter'] = $countBuilder->count();
+            // strip the timestamp so we can use this as a cache key
+            $url = preg_replace('/\_\=[\d]+?\&/', '', \URL::full());
+            // strip the pagination
+            $url = preg_replace('/\&sEcho\=[\d]+/', '', $url);
+            // strip display start
+            $url = preg_replace('/\&iDisplayStart\=[\d]+/', '', $url);
+
+            $this->options['counter'] = \Cache::remember(md5($url), 30, function() use ($countBuilder){
+                return $countBuilder->count();
+            });
         }
 
         $builder = $this->doInternalOrder($builder, $columns);
