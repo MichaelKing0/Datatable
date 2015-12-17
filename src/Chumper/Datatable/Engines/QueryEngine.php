@@ -63,7 +63,12 @@ class QueryEngine extends BaseEngine {
 
     public function totalCount()
     {
-        return $this->originalBuilder->count();
+        $url = \Request::path();
+        $builder = $this->originalBuilder;
+        $count = \Cache::remember(md5($url), 30, function() use ($builder){
+            return $builder->count();
+        });
+        return $count;
     }
 
     public function getArray()
